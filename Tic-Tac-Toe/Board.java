@@ -1,15 +1,23 @@
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Scanner;
+
 public class Board
 {
     // Instance Variables
     public final int gridSize;
     public final String empty = " ";
-    public final String player1 = "O";
-    public final String player2 = "X";
+    public final String player2 = "O";
+    public final String player1 = "X";
     private int turn;
     private String[][] grid;
+    private ArrayList<Board> savedBoard;
 
     public Board()
     {
+        savedBoard = new ArrayList<>();
         this.gridSize = 3;
         this.grid = new String[3][3];
         for(int i = 0;i<gridSize;i++)
@@ -20,18 +28,76 @@ public class Board
             }
         }
         this.turn  = 0;
+        this.saveBaordToList();
     }
 
-    // Constructor for the class
-    // Takes String 2D array as parameter
-    // Create a grid with position 0-8
     public Board(Board other)
     {
         this.gridSize = 3;
+        this.savedBoard = other.getSavedBoard();
         this.setGrid(other.getGrid());
         this.setTurn(other.getTurn());
 
     }
+    
+    public Board(String inputBoard) throws IOException
+    {
+        this.gridSize = 3;
+        Scanner sc = new Scanner(new File(inputBoard));
+        this.setTurn(sc.nextInt());
+        grid = new String[this.gridSize][this.gridSize];
+        for(int i =0;i<this.gridSize;i++)
+        {
+            for(int j = 0;j<this.gridSize;j++)
+            {
+                grid[i][j]= sc.next();
+            }
+        }
+        sc.close();
+    }
+    
+    public void saveBoard(String outputBoard) throws IOException 
+    {
+       PrintWriter printwriter = new PrintWriter(new File(outputBoard));
+
+       for (int row = 0; row < this.gridSize; row++) 
+       {
+          for (int column = 0; column < this.gridSize; column++) 
+          {
+             printwriter.print(grid[row][column]);
+             printwriter.print(" ");
+          }
+          printwriter.println();
+       }
+       printwriter.close();
+    }
+    public void reset()
+    {
+        for(int i = 0;i<gridSize;i++)
+        {
+            for(int j = 0;j<gridSize;j++)
+            {
+                grid[i][j] = empty;
+            }
+        }
+    }
+    public void saveBaordToList()
+    {
+        this.savedBoard.add(new Board(this));
+    }
+    
+
+    public ArrayList<Board> getSavedBoard()
+    {
+        return savedBoard;
+    }
+
+
+    public void setSavedBoard(ArrayList<Board> savedBoard)
+    {
+        this.savedBoard = savedBoard;
+    }
+
 
     public String[][] getGrid()
     {
@@ -40,6 +106,7 @@ public class Board
 
     public void setGrid(String[][] grid)
     {
+        this.grid = new String[gridSize][gridSize];
         for (int i = 0; i < gridSize; i++)
         {
             for (int j = 0; j < gridSize; j++)
@@ -47,17 +114,6 @@ public class Board
                 this.grid[i][j] = grid[i][j];
             }
         }
-    }
-
-    // Display the grid
-    public void displayBoard()
-    {
-        System.out.println(grid[0][0] + "|" + grid[0][1] + "|" + grid[0][2]);
-        System.out.println("-+-+-");
-        System.out.println(grid[1][0] + "|" + grid[1][1] + "|" + grid[1][2]);
-        System.out.println("-+-+-");
-        System.out.println(grid[2][0] + "|" + grid[2][1] + "|" + grid[2][2]);
-
     }
 
     // Takes int as parameter
@@ -83,16 +139,12 @@ public class Board
             if (turn % 2 == 0)
             {
                 grid[row][col] = player1;
-                displayBoard();
             } else
             {
                 grid[row][col] = player2;
-                displayBoard();
             }
             turn++;
-        } else
-        {
-            System.out.print("Invalid move, the space is already taken");
+            this.saveBaordToList();
         }
     }
 
@@ -141,6 +193,25 @@ public class Board
         }
         return true;
     }
+    public void saveBoard()
+    {
+        this.savedBoard.add(new Board(this));
+    }
+    
+    public Board undo()
+    {
+        try
+        {
+            Board prevboard = new Board(this.getSavedBoard().get(this.getTurn()-2));
+            prevboard.setTurn(this.getTurn()-2);
+            return prevboard;
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public String toString()
     {
         StringBuilder a = new StringBuilder();

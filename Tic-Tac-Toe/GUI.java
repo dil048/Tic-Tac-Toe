@@ -1,5 +1,10 @@
+
+import java.io.File;
+import java.util.Scanner;
+
 import javafx.application.*;
 import javafx.scene.*;
+import javafx.scene.control.Button;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
 import javafx.scene.layout.*;
@@ -12,33 +17,125 @@ import javafx.geometry.*;
 public class GUI extends Application
 {
     private Board board;
-    private String outputBoard;
 
     private final int recWidth = 106;
     private final Color recColor = Color.rgb(238, 228, 218, 0.35);
     private final int textSize = 55;
     private final Text name = new Text("Tic-Tac-Toe");
 
+    private final Button credit = new Button("Credit");
+    private final Button start = new Button("Start Game");
+    private final Button instruction = new Button("How to Play");
+    private final Button save = new Button("Save");
+    private final Button load = new Button("Load Game");
+    private final Button undo = new Button("Undo");
+    private final Button restart = new Button("Restart");
+
+    private Button backToFirst;
+    private VBox initalOptions;
     private GridPane pane;
     private StackPane sPane;
+    private TextFlow textPane;
+
     private Text[][] text;
     private Rectangle[][] cells;
     private boolean isGameOver = false;
+
     private Scene scene;
+    private Scene boardScene;
+    private Scene instructionScene;
+    private Stage stage;
 
     @Override
     public void start(Stage primaryStage) throws Exception
     {
-        this.setUpBoard();
-        primaryStage.setResizable(false);
-        primaryStage.setTitle(name.toString());
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        this.stage = primaryStage;
+        stage.setResizable(false);
+        stage.setTitle(name.toString());
+        this.initalPage();
+        stage.setScene(scene);
+        stage.show();
 
+    }
+
+    public void initalPage()
+    {
+        initalOptions = new VBox();
+        initalOptions.setStyle("-fx-background-color: rgb(102, 250, 102)");
+        credit.setShape(new Circle(30, Color.AQUA));
+        credit.setMinSize(120, 40);
+        start.setShape(new Circle(30, Color.AQUA));
+        start.setMinSize(120, 40);
+        instruction.setShape(new Circle(30, Color.AQUA));
+        instruction.setMinSize(120, 40);
+        load.setShape(new Circle(30, Color.AQUA));
+        load.setMinSize(120, 40);
+        initalOptions.setSpacing(30);
+        name.setFont(Font.font("Times New Roman", FontWeight.BOLD,
+            FontPosture.ITALIC, textSize));
+        name.setFill(Color.TEAL);
+        initalOptions.setAlignment(Pos.CENTER);
+        initalOptions.getChildren().addAll(name, start, load, instruction,
+            credit);
+        scene = new Scene(initalOptions, 370, 440);
+        start.setOnAction(e -> {
+            this.setUpBoard();
+            stage.setScene(boardScene);
+            boardScene.setOnMouseClicked(new mouseHandler());
+            stage.show();
+        });
+        instruction.setOnAction(e -> {
+            this.instuctionPage();
+            stage.setScene(instructionScene);
+            stage.show();
+        });
+
+    }
+
+    public void instuctionPage()
+    {
+        try
+        {
+            backToFirst = new Button("Back");
+            BorderPane bPane = new BorderPane();
+            bPane.setStyle("-fx-background-color: rgb(192, 192, 192)");
+            textPane = new TextFlow();
+            StringBuilder s = new StringBuilder();
+            File file = new File("instruction.txt");
+            Scanner sc = new Scanner(file);
+            while (sc.hasNext())
+            {
+                String next = sc.next();
+                if(next.equals("Source:"))
+                {
+                    next = "\n\nSource:";
+                }
+                s.append(next+ " ");
+            }
+            sc.close();
+            Text instruction = new Text(s.toString());
+            textPane.getChildren().add(instruction);
+            textPane.setLineSpacing(5);
+            bPane.setCenter(textPane);
+            bPane.setBottom(backToFirst);
+            backToFirst.setShape(new Circle(30, Color.AQUA));
+            backToFirst.setMinSize(120, 40);
+            bPane.setPadding(new Insets(4,4,170,4));
+            BorderPane.setAlignment(backToFirst, Pos.CENTER);
+            instructionScene = new Scene(bPane,370,440);
+            backToFirst.setOnAction(e -> {
+                this.initalPage();
+                stage.setScene(scene);
+                stage.show();
+            });
+        } catch (Exception e)
+        {
+        }
     }
 
     public void setUpBoard()
     {
+        backToFirst = new Button("Back");
         board = new Board();
         pane = new GridPane();
         sPane = new StackPane();
@@ -48,6 +145,8 @@ public class GUI extends Application
         pane.setHgap(15);
         pane.setVgap(15);
         cells = new Rectangle[board.gridSize][board.gridSize];
+        name.setFont(Font.font("Times New Roman", FontWeight.BOLD,
+            FontPosture.ITALIC, 25));
         pane.add(name, 0, 0, 3, 1);
         GridPane.setHalignment(name, HPos.CENTER);
         for (int i = 0; i < board.gridSize; i++)
@@ -90,9 +189,21 @@ public class GUI extends Application
                 GridPane.setHalignment(text[i][j], HPos.CENTER);
             }
         }
+        pane.add(backToFirst, 0, 4, 1, 1);
+        GridPane.setHalignment(backToFirst, HPos.CENTER);
+        pane.add(undo, 1, 4, 1, 1);
+        GridPane.setHalignment(undo, HPos.CENTER);
+        pane.add(save, 2, 4, 1, 1);
+        GridPane.setHalignment(save, HPos.CENTER);
         sPane = new StackPane(pane);
-        scene = new Scene(sPane);
-        scene.setOnMouseClicked(new mouseHandler());
+        boardScene = new Scene(sPane, 370, 440);
+        boardScene.setOnMouseClicked(new mouseHandler());
+        backToFirst.setOnAction(e -> {
+            this.initalPage();
+            stage.setScene(scene);
+            stage.show();
+        });
+
     }
 
     public void update()
@@ -104,6 +215,8 @@ public class GUI extends Application
         pane.setHgap(15);
         pane.setVgap(15);
         pane.add(name, 0, 0, 3, 1);
+        name.setFont(Font.font("Times New Roman", FontWeight.BOLD,
+            FontPosture.ITALIC, 25));
         GridPane.setHalignment(name, HPos.CENTER);
         cells = new Rectangle[board.gridSize][board.gridSize];
         for (int i = 0; i < board.gridSize; i++)
@@ -138,6 +251,7 @@ public class GUI extends Application
                 }
             }
         }
+
         for (int i = 0; i < board.gridSize; i++)
         {
             for (int j = 0; j < board.gridSize; j++)
@@ -146,6 +260,14 @@ public class GUI extends Application
                 GridPane.setHalignment(text[i][j], HPos.CENTER);
             }
         }
+        pane.add(backToFirst, 0, 4, 1, 1);
+        GridPane.setHalignment(backToFirst, HPos.CENTER);
+        pane.add(undo, 1, 4, 1, 1);
+        GridPane.setHalignment(undo, HPos.CENTER);
+        pane.add(save, 2, 4, 1, 1);
+        GridPane.setHalignment(save, HPos.CENTER);
+        undo.setOnAction(new undoButtonHandler());
+        save.setOnAction(new saveButtonHandler());
 
     }
 
@@ -154,7 +276,6 @@ public class GUI extends Application
         @Override
         public void handle(MouseEvent e)
         {
-            System.out.println(e.getX() + " " + e.getY());
             if (!isGameOver)
             {
                 int row = -1;
@@ -180,11 +301,9 @@ public class GUI extends Application
                 {
                     row = 2;
                 }
-                System.out.println(row + " " + col);
                 if (row != -1 && col != -1)
                 {
                     board.makeMove(row, col);
-                    System.out.println(board.toString());
                     update();
                 }
             }
@@ -197,8 +316,38 @@ public class GUI extends Application
         }
     }
 
+    private class undoButtonHandler implements EventHandler<ActionEvent>
+    {
+
+        @Override
+        public void handle(ActionEvent event)
+        {
+            if (board.getTurn() > 1 && board.undo() != null)
+            {
+                board = board.undo();
+                update();
+            }
+        }
+    }
+
+    private class saveButtonHandler implements EventHandler<ActionEvent>
+    {
+
+        @Override
+        public void handle(ActionEvent event)
+        {
+            if (board.getTurn() > 2 && board.undo() != null)
+            {
+                board = board.undo();
+                update();
+            }
+        }
+    }
+
     private void endGame()
     {
+        isGameOver = false;
+        backToFirst = new Button("Back");
         Text gameOver = new Text(" ");
         if (board.checkWin())
         {
@@ -209,23 +358,34 @@ public class GUI extends Application
             {
                 gameOver = new Text("Player 1 Won!");
             }
-        }else if(board.isFull())
+        } else if (board.isFull())
         {
-            gameOver = new Text("Draw!");
+            gameOver = new Text("It is a Cat game!");
         }
         // set font
-        gameOver.setFont(Font.font("Times New Roman", FontWeight.BOLD, 55));
+        gameOver.setFont(Font.font("Times New Roman", FontWeight.BOLD, 45));
         // set color
         gameOver.setFill(Color.BLACK);
         // set the rectangle that is the size of the pane
         Rectangle rect = new Rectangle(pane.getWidth(), pane.getHeight(),
             Color.rgb(238, 228, 218, 0.35));
-        // add rect to the sPane
-        sPane.getChildren().addAll(rect);
-        // add text to the sPane
-        sPane.getChildren().addAll(gameOver);
-        // center the text
-        StackPane.setAlignment(gameOver, Pos.CENTER);
+        sPane.getChildren().addAll(rect, gameOver,restart,backToFirst);
+        restart.setShape(new Circle(30, Color.AQUA));
+        restart.setMinSize(150, 50);
+        backToFirst.setShape(new Circle(30, Color.AQUA));
+        backToFirst.setMinSize(150, 50);
+        StackPane.setMargin(gameOver, new Insets(0,0,250,0));
+        StackPane.setMargin(backToFirst, new Insets(250,0,0,0));
+        restart.setOnAction(e -> {
+            this.setUpBoard();
+            stage.setScene(boardScene);
+            stage.show();
+        });
+        backToFirst.setOnAction(e -> {
+            this.initalPage();
+            stage.setScene(scene);
+            stage.show();
+        });
     }
 
     public static void main(String[] args)
@@ -233,9 +393,3 @@ public class GUI extends Application
         launch();
     }
 }
-
-/*
- * 10 < x < 116 , 44 < y < 149, 133< x < 238 , 164 < y < 270 253< x < 359 , 286
- * < y < 390
- *
- */

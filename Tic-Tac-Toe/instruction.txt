@@ -1,0 +1,4 @@
+The objective of Tic Tac Toe is to get three in a row. You play on a three by three game board. One player is known as X's and the other is O's. Players alternate placing their X's and O's on the game board until either opponent has three in a row or all nine squares are filled. X's always go first, and in the event that no one has three in a row, the stalemate is called a cat game.
+
+Source:
+http://www.cyberoculus.com/tic-tac-toe.asp?Action=Rules
